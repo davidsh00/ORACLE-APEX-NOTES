@@ -128,7 +128,7 @@ delete lab_parts p where rownum>(select count(*) from lab_parts where cod_part =
 ```
 
 ---
-# SHOW ALL APEX BULTIN VIEW 
+# SHOW ALL APEX built-in VIEW 
 ```SQL
 select * from APEX_DICTIONARY 
 ```
