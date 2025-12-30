@@ -44,9 +44,39 @@ apex_error.add_error (
 
 ---
 
-## List Todo
+## interactive grid change selected records
+```javascipt
+let model, record, records, totalRecords, i, view = apex.region("itemTest").call("getCurrentView")
+if (view.supports.edit) {
 
-- [ ] Interactive Grid select Total Row/Records
+    model = view.model;
+    records = view.getSelectedRecords();
+    for (i = 0; i < records.length; i++) {
+        record = records[i];
+        model.setValue(record, "FLG_UPDATE", 'UPD');
+    }
+}
+apex.submit('SEND_TO_FINANCE');
+```
+
+## interactive grid active and change all records
+```javascipt
+let model, record, records, totalRecords, i, view = apex.region("lineT").call("getCurrentView")
+if (view.supports.edit) {
+    ;
+    model = view.model;
+    totalRecords = model.getTotalRecords(true)
+    for (i = 0; i < totalRecords; i++) {
+        record = model.recordAt(i);
+        if (record) {
+            try { model.setValue(record, 'FLG_ACTION', 'UPD'); } catch (error) {
+null;
+            }
+        }
+    }
+}
+apex.submit('SAVE')
+```
 
 ---
 
