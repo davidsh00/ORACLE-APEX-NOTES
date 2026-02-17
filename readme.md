@@ -45,6 +45,7 @@ apex_error.add_error (
 ---
 
 ## interactive grid change selected records
+
 ```javascipt
 let model, record, records, totalRecords, i, view = apex.region("itemTest").call("getCurrentView")
 if (view.supports.edit) {
@@ -60,6 +61,7 @@ apex.submit('SEND_TO_FINANCE');
 ```
 
 ## interactive grid active and change all records
+
 ```javascipt
 let model, record, records, totalRecords, i, view = apex.region("lineT").call("getCurrentView")
 if (view.supports.edit) {
@@ -158,12 +160,107 @@ delete lab_parts p where rownum>(select count(*) from lab_parts where cod_part =
 ```
 
 ---
-# SHOW ALL APEX built-in VIEW 
+
+# SHOW ALL APEX built-in VIEW
+
 ```SQL
-select * from APEX_DICTIONARY 
+select * from APEX_DICTIONARY
 ```
-for example for show apex share component `List of Values` you shoue use 
-```SQL 
+
+for example for show apex share component `List of Values` you shoue use
+
+```SQL
 select * from APEX_APPLICATION_LOV_COLS
+```
+
+---
+# Apex Collection
+
+#### `CREATE_OR_TRUNCATE_COLLECTION `
+
+```sql
+Begin
+    APEX_COLLECTION.CREATE_OR_TRUNCATE_COLLECTION(
+        p_collection_name => 'EMPLOYEES');
+End;
+```
+<br>
+
+#### `CREATE_COLLECTION_FROM_QUERY Procedure`
+ Use this procedure to create a collection from a supplied query. The query is parsed as the application owner. This method can be used with a query with up to 50 columns in the SELECT clause. These columns in the SELECT clause populates the 50 character attributes of the collection (C001 through C050). If a collection exists with the same name for the current user in the same session for the current Application ID, an application error is raised.
+```sql
+Begin
+    l_query := 'select make, model, year from AUTOS';
+    APEX_COLLECTION.CREATE_COLLECTION_FROM_QUERY (
+        p_collection_name => 'AUTO', 
+        p_query => l_query,
+        p_generate_md5 => 'YES');
+End;
+```
+<br>
+
+#### `ADD_MEMBER Function`
+
+```sql
+Begin
+DECLARE
+    l_seq number;
+BEGIN
+    l_seq := APEX_COLLECTION.ADD_MEMBER(
+                 p_collection_name => 'GROCERIES'
+                 p_c001            => 'Grapes',
+                 p_c002            => 'Imported',
+                 p_n001            => 125,
+                 p_d001            => sysdate );
+END;
+End;
+```
+<br>
+
+### `UPDATE_MEMBER Procedure`
+```sql
+BEGIN;
+    APEX_COLLECTION.UPDATE_MEMBER (
+        p_collection_name => 'Departments',
+        p_seq => '2',
+        p_c001 => 'Engineering',
+        p_c002 => 'Sales');
+```
+<br>
+
+#### `DELETE_MEMBER Procedure`
+```sql
+APEX_COLLECTION.DELETE_MEMBER (
+    p_collection_name IN VARCHAR2,
+    p_seq IN VARCHAR2);
+```
+<br>
+
+#### `CREATE_COLLECTION Procedure`
+```sql
+APEX_COLLECTION.CREATE_COLLECTION(
+    p_collection_name IN VARCHAR2);
+```
+<br>
+
+#### `Deleting a Collection`
+```sql
+APEX_COLLECTION.DELETE_COLLECTION (
+    p_collection_name IN VARCHAR2); 
+```
+<br>
+
+#### `DELETE_MEMBERS Procedure`
+The following example deletes all members of the collection named 'GROCERIES' where the 5th character attribute is equal to 'APPLE'.
+
+```sql
+Begin
+    apex_collection.delete_members( 
+        p_collection_name => 'GROCERIES'
+        p_attr_number     => 5,
+        p_attr_value      => 'APPLE' );
+    Commit;
+End;
+
 ```
 ---
