@@ -174,6 +174,7 @@ select * from APEX_APPLICATION_LOV_COLS
 ```
 
 ---
+
 # Apex Collection
 
 #### `CREATE_OR_TRUNCATE_COLLECTION `
@@ -184,19 +185,23 @@ Begin
         p_collection_name => 'EMPLOYEES');
 End;
 ```
+
 <br>
 
 #### `CREATE_COLLECTION_FROM_QUERY Procedure`
- Use this procedure to create a collection from a supplied query. The query is parsed as the application owner. This method can be used with a query with up to 50 columns in the SELECT clause. These columns in the SELECT clause populates the 50 character attributes of the collection (C001 through C050). If a collection exists with the same name for the current user in the same session for the current Application ID, an application error is raised.
+
+Use this procedure to create a collection from a supplied query. The query is parsed as the application owner. This method can be used with a query with up to 50 columns in the SELECT clause. These columns in the SELECT clause populates the 50 character attributes of the collection (C001 through C050). If a collection exists with the same name for the current user in the same session for the current Application ID, an application error is raised.
+
 ```sql
 Begin
     l_query := 'select make, model, year from AUTOS';
     APEX_COLLECTION.CREATE_COLLECTION_FROM_QUERY (
-        p_collection_name => 'AUTO', 
+        p_collection_name => 'AUTO',
         p_query => l_query,
         p_generate_md5 => 'YES');
 End;
 ```
+
 <br>
 
 #### `ADD_MEMBER Function`
@@ -215,9 +220,11 @@ BEGIN
 END;
 End;
 ```
+
 <br>
 
 ### `UPDATE_MEMBER Procedure`
+
 ```sql
 BEGIN;
     APEX_COLLECTION.UPDATE_MEMBER (
@@ -226,36 +233,44 @@ BEGIN;
         p_c001 => 'Engineering',
         p_c002 => 'Sales');
 ```
+
 <br>
 
 #### `DELETE_MEMBER Procedure`
+
 ```sql
 APEX_COLLECTION.DELETE_MEMBER (
     p_collection_name IN VARCHAR2,
     p_seq IN VARCHAR2);
 ```
+
 <br>
 
 #### `CREATE_COLLECTION Procedure`
+
 ```sql
 APEX_COLLECTION.CREATE_COLLECTION(
     p_collection_name IN VARCHAR2);
 ```
+
 <br>
 
 #### `Deleting a Collection`
+
 ```sql
 APEX_COLLECTION.DELETE_COLLECTION (
-    p_collection_name IN VARCHAR2); 
+    p_collection_name IN VARCHAR2);
 ```
+
 <br>
 
 #### `DELETE_MEMBERS Procedure`
+
 The following example deletes all members of the collection named 'GROCERIES' where the 5th character attribute is equal to 'APPLE'.
 
 ```sql
 Begin
-    apex_collection.delete_members( 
+    apex_collection.delete_members(
         p_collection_name => 'GROCERIES'
         p_attr_number     => 5,
         p_attr_value      => 'APPLE' );
@@ -263,4 +278,153 @@ Begin
 End;
 
 ```
+
 ---
+
+### getItemWhenLoad DOM JS
+
+```js
+function getItemWhenLoad(selector, cbFunction, maxAttempts = 100) {
+  let attempts = 0;
+
+  const check = () => {
+    const elements = document.querySelectorAll(selector);
+
+    if (elements.length) {
+      cbFunction(elements);
+      return;
+    }
+
+    if (++attempts < maxAttempts) {
+      setTimeout(check, 100);
+    } else {
+      console.warn(`Element not found: ${selector}`);
+    }
+  };
+
+  check();
+}
+```
+
+---
+
+# `Faceted Search`
+
+### if error occured when multi checkbox by count filters use below hint on classic report query
+
+```sql
+/*+ MATERIALIZE */
+```
+
+### `Show By Default JS`
+
+```js
+getItemWhenLoad(".a-FS-facetsDashboard", () => {
+  [
+    "P243_DARKHAST_GROUP_TITLE",
+    "P243_DARKHAST_TYPE_TITLE",
+    "P243_STATUS",
+    "P243_STATE_CODE_KHANEVAR_TITLE",
+    "P243_LOCATION_ID_KHANEVAR_NAME_FC",
+    "P243_CREATED_TYPE_TITLE",
+    "P243_STATE_CODE_IJAD_KONANDE_TITLE",
+    "P243_LOCATION_ID_IJAD_KONANDE_NAME_FC1",
+  ].forEach((fcItem) => {
+    apex.region("fc").addChart(fcItem, null, { type: "pie" });
+  });
+  renderMaximizedBtnOnChart();
+});
+```
+
+### `renderMaximizedBtnOnChart `
+
+#### JS Functions
+
+```js
+function renderMaximizedBtnOnChart() {
+  const elems = document.querySelectorAll("#chartContainer .a-FS-facetChart ");
+  elems.forEach((chart) => {
+    const btnContainer = chart.querySelector(".a-FS-facetChart-controls");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.classList.add(
+      "a-Button",
+      "a-Button--noLabel",
+      "a-Button--withIcon",
+      "ml-1",
+      "btn-maximized",
+    );
+    const btnIcon = document.createElement("span");
+    btnIcon.classList.add("t-Icon", "a-Icon", "icon-maximize");
+    btn.append(btnIcon);
+    btn.addEventListener("click", () => {
+      maximizedChart(chart, elems);
+    });
+    if (!btnContainer.querySelector(".btn-maximized")) {
+      btnContainer.prepend(btn);
+    }
+  });
+}
+function maximizedChart(chartElem, chartElemList) {
+  if (chartElem.classList.contains("is-maximized")) {
+    chartElem.classList.remove("is-maximized");
+    document.body.classList.remove("all-overflow-hidden");
+  } else {
+    [...chartElemList].forEach((chart) => {
+      chart.classList.remove("is-maximized");
+    });
+    chartElem.classList.add("is-maximized");
+    document.body.classList.add("all-overflow-hidden");
+  }
+}
+```
+
+#### Maximized Styles
+
+```css
+.ml-2 {
+  margin-left: 0.5rem;
+}
+.ml-1 {
+  margin-left: 0.25rem;
+}
+#chartContainer .a-FS-facetChart.is-maximized {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 9999;
+  transition: all 0.4s ease-in-out;
+}
+```
+
+#### Steps to show spinner on fc
+
+1.  define on page variables
+1.  add `Faceted Change` on your fc and execute bellow js code and turn on fire on initialization
+
+    ```js
+    if (!fcSpinner) {
+      fcSpinner = apex.util.showSpinner();
+    }
+    ```
+
+1.  add `afterRefreshFc` on your fc and execute bellow js code
+
+    ```js
+    if (fcSpinner) {
+      fcSpinner.remove();
+      fcSpinner = null;
+    }
+    ```
+
+---
+
+### Optimzer Hints
+
+```sql
+/*+ MATERIALIZE LEADING(d) USE_NL(k r wf)*/
+```
+- LEADING: which table should be drive table
+- USE_NL: nested loop 
