@@ -428,3 +428,51 @@ function maximizedChart(chartElem, chartElemList) {
 ```
 - LEADING: which table should be drive table
 - USE_NL: nested loop 
+---
+### onTabChange
+```js
+
+function onTabChange(tabContainerId, cbOnTabChange, targetTabId = null, cbOnTargetChanged = null) {
+    getItemWhenLoad(`#${tabContainerId} a.t-Tabs-link`, (tEA) => {
+        const getTabModel = (tabId) => {
+            return [...document.querySelectorAll(`#${tabId} a.t-Tabs-link`)]
+                .map((item, i) => {
+                    return {
+                        seq: i,
+                        id: item.getAttribute('href').substring(4),
+                        elem: item,
+                        isSelected: item.getAttribute('aria-selected') === 'true' ? true : false
+                    }
+                })
+        }
+        let tabModel = getTabModel(tabContainerId);
+
+        tabModel.forEach(tab => {
+            tab.elem.addEventListener('click', () => {
+                const newTabModel = getTabModel(tabContainerId);
+                const tabActive = tabModel.find(item => item.isSelected);
+                const newTabActive = newTabModel.find(item => item.isSelected);
+                const tabIndexActive = tabActive?.seq;
+                const newTabIndexActive = newTabActive?.seq;
+                tabModel = newTabModel;
+                if (newTabIndexActive != null && tabIndexActive != newTabIndexActive) {
+
+                    if (cbOnTabChange) {
+                        cbOnTabChange(newTabActive)
+                    }
+                    if (targetTabId != null
+                        && cbOnTargetChanged != null
+                        && newTabActive.id
+                        && newTabActive.id == targetTabId
+                    ) {
+                        cbOnTargetChanged(newTabActive)
+
+                    }
+
+                }
+            })
+        })
+    })
+};
+```
+---
