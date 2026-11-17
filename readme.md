@@ -426,53 +426,116 @@ function maximizedChart(chartElem, chartElemList) {
 ```sql
 /*+ MATERIALIZE LEADING(d) USE_NL(k r wf)*/
 ```
+
 - LEADING: which table should be drive table
-- USE_NL: nested loop 
+- USE_NL: nested loop
+
 ---
+
 ### onTabChange
+
 ```js
+function onTabChange(
+  tabContainerId,
+  cbOnTabChange,
+  targetTabId = null,
+  cbOnTargetChanged = null,
+) {
+  getItemWhenLoad(`#${tabContainerId} a.t-Tabs-link`, (tEA) => {
+    const getTabModel = (tabId) => {
+      return [...document.querySelectorAll(`#${tabId} a.t-Tabs-link`)].map(
+        (item, i) => {
+          return {
+            seq: i,
+            id: item.getAttribute("href").substring(4),
+            elem: item,
+            isSelected:
+              item.getAttribute("aria-selected") === "true" ? true : false,
+          };
+        },
+      );
+    };
+    let tabModel = getTabModel(tabContainerId);
 
-function onTabChange(tabContainerId, cbOnTabChange, targetTabId = null, cbOnTargetChanged = null) {
-    getItemWhenLoad(`#${tabContainerId} a.t-Tabs-link`, (tEA) => {
-        const getTabModel = (tabId) => {
-            return [...document.querySelectorAll(`#${tabId} a.t-Tabs-link`)]
-                .map((item, i) => {
-                    return {
-                        seq: i,
-                        id: item.getAttribute('href').substring(4),
-                        elem: item,
-                        isSelected: item.getAttribute('aria-selected') === 'true' ? true : false
-                    }
-                })
+    tabModel.forEach((tab) => {
+      tab.elem.addEventListener("click", () => {
+        const newTabModel = getTabModel(tabContainerId);
+        const tabActive = tabModel.find((item) => item.isSelected);
+        const newTabActive = newTabModel.find((item) => item.isSelected);
+        const tabIndexActive = tabActive?.seq;
+        const newTabIndexActive = newTabActive?.seq;
+        tabModel = newTabModel;
+        if (newTabIndexActive != null && tabIndexActive != newTabIndexActive) {
+          if (cbOnTabChange) {
+            cbOnTabChange(newTabActive);
+          }
+          if (
+            targetTabId != null &&
+            cbOnTargetChanged != null &&
+            newTabActive.id &&
+            newTabActive.id == targetTabId
+          ) {
+            cbOnTargetChanged(newTabActive);
+          }
         }
-        let tabModel = getTabModel(tabContainerId);
-
-        tabModel.forEach(tab => {
-            tab.elem.addEventListener('click', () => {
-                const newTabModel = getTabModel(tabContainerId);
-                const tabActive = tabModel.find(item => item.isSelected);
-                const newTabActive = newTabModel.find(item => item.isSelected);
-                const tabIndexActive = tabActive?.seq;
-                const newTabIndexActive = newTabActive?.seq;
-                tabModel = newTabModel;
-                if (newTabIndexActive != null && tabIndexActive != newTabIndexActive) {
-
-                    if (cbOnTabChange) {
-                        cbOnTabChange(newTabActive)
-                    }
-                    if (targetTabId != null
-                        && cbOnTargetChanged != null
-                        && newTabActive.id
-                        && newTabActive.id == targetTabId
-                    ) {
-                        cbOnTargetChanged(newTabActive)
-
-                    }
-
-                }
-            })
-        })
-    })
-};
+      });
+    });
+  });
+}
 ```
+
 ---
+
+# toggleCollapsibleRegion
+
+```js
+/**
+ * Toggles or sets the expand/collapse state of a Static Region.
+ *
+ * @param {string} regionId - The Static ID of the region.
+ * @param {'toggle' | 'collapsed' | 'expand'} [type='toggle'] - Operation type. Defaults to 'toggle'.
+ * @returns {void}
+ */
+function toggleCollapsibleRegion(regionId, type = "toggle") {
+  const te = document.getElementById(regionId);
+
+  if (!te) {
+    console.warn(`Region with Static ID "${regionId}" was not found.`);
+    return;
+  }
+
+  const teActionBtn = te.querySelector(".t-Button--hideShow");
+
+  if (!teActionBtn) {
+    console.warn(`Hide/Show button not found in region "${regionId}".`);
+    return;
+  }
+
+  const isTeCollapsed = teActionBtn.classList.contains("is-collapsed");
+
+  if (type === "toggle") {
+    teActionBtn.click();
+  } else if (type === "collapsed" && !isTeCollapsed) {
+    teActionBtn.click();
+  } else if (type === "expand" && isTeCollapsed) {
+    teActionBtn.click();
+  }
+}
+```
+
+# Classic Report Contextual style
+
+```css
+.t-ContextualInfo {
+  row-gap: 0.5rem;
+}
+.t-ContextualInfo .t-ContextualInfo-item {
+  width: 25%;
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+}
+.t-ContextualInfo .t-ContextualInfo-label::after {
+  content: ":";
+}
+```
